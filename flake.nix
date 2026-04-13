@@ -1,8 +1,6 @@
 {
   description = "Dalamud branch packages and sdk versions";
-
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
   outputs =
     { self, nixpkgs, ... }:
     let
@@ -22,27 +20,26 @@
           };
         }
       );
-
       packages =
         let
-          sources = lib.importJSON ./dalamud-branches.json;
+          branchData = (lib.importJSON ./dalamud-branches.json).branches;
         in
         forAllSystems (
           system: pkgs:
           let
             mkDalamud =
-              name: source:
+              name: branch:
               let
                 sdk =
-                  pkgs.dotnetCorePackages.${source.nix.dotnetSdkVersion}
-                    or (throw "dalamud: unknown .NET SDK '${source.nix.dotnetSdkVersion}'");
+                  pkgs.dotnetCorePackages.${branch.nix.dotnetSdkVersion}
+                    or (throw "dalamud: unknown .NET SDK '${branch.nix.dotnetSdkVersion}'");
               in
               pkgs.stdenvNoCC.mkDerivation {
                 pname = "dalamud-${name}";
-                version = source.version;
+                version = branch.version;
                 src = pkgs.fetchzip {
-                  url = source.downloadUrl;
-                  hash = source.nix.hash;
+                  url = branch.downloadUrl;
+                  hash = branch.nix.hash;
                   extension = "zip";
                   stripRoot = false;
                 };
@@ -51,12 +48,12 @@
                   inherit sdk;
                 };
                 meta = {
-                  description = "Dalamud plugin framework (${name} channel) v${source.version}";
+                  description = "Dalamud plugin framework (${name} channel) v${branch.version}";
                   homepage = "https://github.com/goatcorp/Dalamud";
                   license = lib.licenses.agpl3Only;
                 };
               };
-            branches = lib.mapAttrs mkDalamud sources;
+            branches = lib.mapAttrs mkDalamud branchData;
           in
           branches // { default = branches.release; }
         );

@@ -24,10 +24,10 @@ jobs:
       - name: Read branches
         id: branches
         run: |
-          echo "branches=$(jq -c '[to_entries[] | {
-            branch: .key,
-            url: .value.downloadUrl,
-            sdk: .value.docker.dotnetSdkVersion,
+          echo "branches=$(jq -c '[.branches | to_entries[] | {
+              branch: .key,
+              url: .value.downloadUrl,
+              sdk: .value.docker.dotnetSdkVersion,
           }]' dalamud-branches.json)" >> "$GITHUB_OUTPUT"
 
       - name: Image Name
