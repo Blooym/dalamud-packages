@@ -29,11 +29,6 @@
           let
             mkDalamud =
               name: branch:
-              let
-                sdk =
-                  pkgs.dotnetCorePackages.${branch.nix.dotnetSdkVersion}
-                    or (throw "dalamud: unknown .NET SDK '${branch.nix.dotnetSdkVersion}'");
-              in
               pkgs.stdenvNoCC.mkDerivation {
                 pname = "dalamud-${name}";
                 version = branch.version;
@@ -45,7 +40,9 @@
                 };
                 installPhase = "cp -r . $out";
                 passthru = {
-                  inherit sdk;
+                  dotnetSdk =
+                    pkgs.dotnetCorePackages.${branch.nix.dotnetSdkVersion}
+                      or (throw "dalamud: unknown .NET SDK '${branch.nix.dotnetSdkVersion}'");
                 };
                 meta = {
                   description = "Dalamud plugin framework (${name} channel) v${branch.version}";

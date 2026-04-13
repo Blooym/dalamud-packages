@@ -38,7 +38,7 @@ Then use it in your dev shell, or elsewhere, replacing `<branch>` with your desi
 ```nix
 pkgs.mkShell {
   packages = [
-    inputs.dalamud.packages.${system}.<branch>.sdk # Linked dotnet sdk
+    inputs.dalamud.packages.${system}.<branch>.dotnetSdk # Dalamud's Dotnet SDK version
   ];
   env.DALAMUD_HOME = inputs.dalamud.packages.${system}.<branch>; # Dalamud files
 };
