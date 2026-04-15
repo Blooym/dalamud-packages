@@ -1,10 +1,11 @@
 import json
+import os
 import subprocess
 import urllib.request
 import hashlib
 
 META_URL = "https://kamori.goats.dev/Dalamud/Release/Meta"
-OUTPUT = "dalamud-branches.json"
+BRANCH_FILE = "dalamud-branches.json"
 
 
 def runtime_ver_to_nix_sdk(runtime_version):
@@ -46,14 +47,28 @@ def generate_branch(branch, info):
     }
 
 
+# Fetch remote branch metadata.
 print(f"Fetching release information from {META_URL}")
-with urllib.request.urlopen(META_URL) as r:
-    meta = json.load(r)
-checksum = hashlib.sha256(
-    json.dumps(meta, indent=None, sort_keys=True, ensure_ascii=True).encode("utf-8")
-).hexdigest()
+with urllib.request.urlopen(META_URL) as response:
+    meta = json.load(response)
+    checksum = hashlib.sha256(
+        json.dumps(meta, indent=None, sort_keys=True, ensure_ascii=True).encode("utf-8")
+    ).hexdigest()
+
+# Check if anything changed since last run.
+if os.path.exists(BRANCH_FILE):
+    try:
+        with open(BRANCH_FILE, "r") as f:
+            existing_checksum = json.load(f).get("_generated", {}).get("checksum")
+            if existing_checksum == checksum:
+                print("No changes found since last update")
+                exit(0)
+    except (json.JSONDecodeError, KeyError):
+        pass
+
+# Update local branch data.
 branches = dict(generate_branch(branch, info) for branch, info in meta.items())
-with open(OUTPUT, "w") as f:
+with open(BRANCH_FILE, "w") as f:
     json.dump(
         {
             "_generated": {
@@ -66,4 +81,4 @@ with open(OUTPUT, "w") as f:
         f,
         indent=2,
     )
-print(f"Written to {OUTPUT}")
+print(f"Updated {BRANCH_FILE} ({checksum})")
