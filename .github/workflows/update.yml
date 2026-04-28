@@ -8,7 +8,7 @@ on:
       - "update.py"
       - ".github/workflows/update.yml"
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0,12 * * *'
 
 jobs:
   update-branches:
